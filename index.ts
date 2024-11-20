@@ -1,12 +1,17 @@
 import { ApiPromise, WsProvider } from "@polkadot/api";
+import { createClient } from "polkadot-api";
+import { getWsProvider } from "polkadot-api/ws-provider/node";
+import { getExtrinsicDecoder, getPjsTxHelper } from "@polkadot-api/tx-utils";
 
-// run `bun chopsticks` to make this endpoint available
-// const provider = new WsProvider("ws://localhost:3421");
+const WITH_CHOPSTICKS = true; // set to true after running `bun chopsticks`
+const RPC_URL = WITH_CHOPSTICKS
+  ? "ws://localhost:3421"
+  : "wss://polkadot-asset-hub-rpc.polkadot.io";
 
-const provider = new WsProvider("wss://polkadot-asset-hub-rpc.polkadot.io");
+const provider = new WsProvider(RPC_URL);
 
-const api = await ApiPromise.create({ provider });
-await api.isReady;
+const pjsApi = await ApiPromise.create({ provider });
+await pjsApi.isReady;
 
 const payload = {
   signedExtensions: [
@@ -38,10 +43,23 @@ const payload = {
   withSignedTransaction: true,
 };
 
-const extrinsicPayload = api.registry.createType("ExtrinsicPayload", payload);
+const extrinsicPayload = pjsApi.registry.createType(
+  "ExtrinsicPayload",
+  payload
+);
 
 console.log("assetId from JSON payload:", payload.assetId);
 console.log("assetId from parsed payload:", extrinsicPayload.assetId.toJSON());
 
-await api.disconnect();
-process.exit(0);
+await pjsApi.disconnect();
+
+const wsProvider = getWsProvider(RPC_URL);
+const client = createClient(wsProvider);
+
+const papi = client.getUnsafeApi();
+const binMetadata = await papi.apis.Metadata.metadata_at_version(14);
+
+const pjsTxHelper = getPjsTxHelper(binMetadata.asBytes());
+const res = pjsTxHelper(payload as any);
+
+console.log(res);
