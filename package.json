@@ -1,0 +1,17 @@
+{
+  "name": "issue-pjs-ah-signing",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@polkadot/api": "13.0.1"
+  },
+  "scripts": {
+    "chopsticks": "(cd chopsticks && npx @acala-network/chopsticks@latest xcm -r ./polkadot.yml -p ./pah.yml)"
+  }
+}
